@@ -1,0 +1,97 @@
+# ══════════════════════════════════════════════════════════════════
+# Instalação do ambiente — compara_classificadores_torch
+# Testado em: Ubuntu 22.04 / 24.04 (bare-metal e WSL2)
+# GPU:        NVIDIA RTX 3060+ (driver >= 525, CUDA >= 12.1)
+# Atualizado: 2025
+# ══════════════════════════════════════════════════════════════════
+
+
+# ─────────────────────────────────────────────────────────────────
+# 1. CONDA — criar e ativar o ambiente
+# ─────────────────────────────────────────────────────────────────
+
+conda create --yes --name teste python=3.11
+conda activate teste
+
+
+# ─────────────────────────────────────────────────────────────────
+# 2. PyTorch com suporte CUDA 12.1
+#    Consulte https://pytorch.org/get-started/locally/ se a sua
+#    versão de CUDA for diferente.
+# ─────────────────────────────────────────────────────────────────
+
+conda install --yes pytorch torchvision torchaudio pytorch-cuda=12.1 \
+    -c pytorch -c nvidia
+
+
+# ─────────────────────────────────────────────────────────────────
+# 3. Bibliotecas científicas via conda
+# ─────────────────────────────────────────────────────────────────
+
+conda install --yes \
+    scikit-learn \
+    pandas \
+    "numpy<2.0" \
+    matplotlib \
+    seaborn
+
+
+# ─────────────────────────────────────────────────────────────────
+# 4. Bibliotecas adicionais via pip
+# ─────────────────────────────────────────────────────────────────
+
+pip install --no-input \
+    timm \
+    captum \
+    ml_collections \
+    tifffile \
+    opencv-python-headless \
+    wget \
+    torchmetrics \
+    lion-pytorch \
+    shap
+
+
+# ─────────────────────────────────────────────────────────────────
+# 5. R e pacotes estatísticos
+# ─────────────────────────────────────────────────────────────────
+
+# Dependências do sistema (Ubuntu/Debian)
+sudo apt update
+sudo apt install --yes r-base libfontconfig1-dev libcurl4-openssl-dev libssl-dev libxml2-dev
+
+# Instala pacotes R
+sudo Rscript install_R_packages.R
+
+
+# ─────────────────────────────────────────────────────────────────
+# VERIFICAÇÃO RÁPIDA
+# ─────────────────────────────────────────────────────────────────
+# Após a instalação, execute o sanity check para confirmar que
+# o ambiente está funcionando corretamente:
+#
+#   conda activate teste
+#   cd src
+#   python sanity_check.py
+#
+# Resultado esperado: "SUCESSO TOTAL" antes da época 20.
+
+
+# ─────────────────────────────────────────────────────────────────
+# SOLUÇÃO DE PROBLEMAS
+# ─────────────────────────────────────────────────────────────────
+#
+# • "CUDA out of memory"
+#     → Reduza BATCH_SIZE em hyperparameters.py (tente 8 ou 4)
+#
+# • "DataLoader worker crashed"
+#     → Reduza NUM_WORKERS para 0 ou 4 em hyperparameters.py
+#
+# • Arquitetura exige tamanho de imagem específico
+#     → coat_tiny, swinv2_cr_base_224: IMAGE_SIZE = 224
+#     → maxvit, vit, swin_window16:    IMAGE_SIZE = 256
+#
+# • Erro ao baixar pesos da IELT
+#     → Verifique conexão com internet ou baixe manualmente:
+#       wget https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz \
+#            -O src/IELT/pretrained/ViT-B_16.npz
